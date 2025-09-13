@@ -9,7 +9,7 @@ const app = express();
 const dbConfig = {
     user: 'system',
     password: 'Sow@#124',
-    connectString: 'localhost/XEPDB1' // replace with your Oracle connection string
+    connectString: 'localhost/XE' // replace with your Oracle connection string
 };
 
 // Connect to MySQL
@@ -23,22 +23,29 @@ app.get('/', (req, res) => {
 
 
 // Get all users
-app.get('/users', (req, res) => {
+app.get('/users', async (req, res) => {
+  let connection;
 
-    try{
-	const dbconnect = oracledb.getConnection(dbConfig);
-	 console.log('MySQL connected...');
-}
-catch(err)
-{
-	console.log('Error connecting to Oracle Database:', err);
-}
-    const sql = 'SELECT * FROM users';
-    console.log(sql);
-    const result =  dbconnect.execute(sql);
-    res.send(result.rows);
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+    console.log('OracleDB connected...');
+
+    const result = await connection.execute('SELECT * FROM users');
+    
+    res.send(result.rows);  // You can format the result as needed
+  } catch (err) {
+    console.error('Error accessing Oracle Database:', err);
+    res.status(500).send('Database error');
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
+  }
 });
-
 
 // Start the server
 app.listen(5000, () => {
