@@ -37,6 +37,27 @@ app.post('/users',async(req,res)=>{
     res.send(`User inserted with ID: ${result.outBinds.id[0]}`);
 
 });
+app.put('/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+
+  let connection = await oracledb.getConnection(dbConfig);
+  const sql = 'UPDATE users SET name = :name, email = :email WHERE id = :id';
+  await connection.execute(sql, { id, name, email }, { autoCommit: true });
+  await connection.close();
+
+  res.send(`User with ID ${id} updated successfully`);
+});
+
+app.delete('/users/:id', async (req, res) => {
+  const { id } = req.params;
+  let connection = await oracledb.getConnection(dbConfig);
+  const sql = 'DELETE FROM users WHERE id = :id';
+  await connection.execute(sql, { id }, { autoCommit: true });
+  await connection.close();
+  res.send(`User with ID ${id} deleted successfully`);
+});
+
 
 app.listen(3000, () => {
     console.log('Server listening at http://localhost:3000');
